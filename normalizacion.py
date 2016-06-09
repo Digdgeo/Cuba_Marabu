@@ -1,3 +1,11 @@
+######## PROTOCOLO AUTOMATICO PARA LA CORRECCION RADIOMETRICA DE ESCENAS LANDSAT 8 #######
+######                                                                              ######
+####                        Autor: Diego Garcia Diaz                                  ####
+###                      email: digd.geografo@gmail.com                                ###
+##                 GitHub: https://github.com/Digdgeo/Cuba_Marabu                       ##
+#                   Universidad de Huelva 25/05/2016-25/07/2016                          #
+
+
 import os, shutil, re, time, subprocess, pandas, rasterio, pymongo, sys, fileinput, stat, urllib
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,7 +19,7 @@ from datetime import datetime
 class nor(object):
 
     '''esta clase realiza la normalizacion entre distintas fechas de la misma escena, de cara a obtener un buen producto en la aplicacion
-    del proximo metodo aplicada BQA, en el que se reemplazaran los pixeles nubosos de la escena de referencia por pixeles de otras escenas'''
+    del proximo metodo aplicado en el proceso (BPA), en el que se reemplazaran los pixeles nubosos de la escena de referencia por pixeles de otras escenas'''
 
     def __init__(self, ruta_rad):
 

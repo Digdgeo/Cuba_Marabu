@@ -1,10 +1,9 @@
-######## PROTOCOLO AUTOMATICO PARA LA GENERACION DE INDICES APLICADOS #######
-#######        A AGUAS CONTINENTALES CON LANDSAT 8 Y SENTINEL 2        ######
-######                                                                  #####
-####                        Autor: Diego Garcia Diaz                     ####
-###                      email: digd.geografo@gmail.com                   ###
-##            GitHub: https://github.com/Digdgeo/Landsat8_Corrad_Embalses  ##
-#                        Sevilla 01/01/2016-28/02/2016                      #
+######## PROTOCOLO AUTOMATICO PARA LA CORRECCION RADIOMETRICA DE ESCENAS LANDSAT 8 #######
+######                                                                              ######
+####                        Autor: Diego Garcia Diaz                                  ####
+###                      email: digd.geografo@gmail.com                                ###
+##                 GitHub: https://github.com/Digdgeo/Cuba_Marabu                       ##
+#                   Universidad de Huelva 25/05/2016-25/07/2016                          #
 
 # coding: utf-8
 

@@ -2,8 +2,8 @@
 ######                                                                              ######
 ####                        Autor: Diego Garcia Diaz                                  ####
 ###                      email: digd.geografo@gmail.com                                ###
-##            GitHub: https://github.com/Digdgeo/****                                   ##
-#                        Huelva 25/05/2016-25/07/2016                                   #
+##                 GitHub: https://github.com/Digdgeo/Cuba_Marabu                       ##
+#                   Universidad de Huelva 25/05/2016-25/07/2016                          #
 
 # coding: utf-8
 
@@ -19,27 +19,24 @@ from IPython.display import display
 class Landsat(object):
     
      
-    '''Esta clase esta hecha para corregir radiometricamente escenas Landsat 8, de cara a obtener coeficientes de dsitintos parametros fisico-quimicos
-    en algunos Embalses de la cuenca del Guadalquivir.
+    '''Esta clase esta hecha para corregir radiometricamente escenas Landsat 8, debido a la imposibilidad de trabajar con escenas CDR (corregidas por la NASA) debido 
+    a la presencia de "arefactos" en gran parte de las escenas.
 
     El unico software necesario es Miramon, que se utiliza por su gestion de Metadatos. Se emplea en la Importacion y en la Correccion Radiometrica
     y se llama mediante archivos bat. Para el resto de procesos se usan GDAL, Rasterio y otras librerias de Python. En general se tratan los rasters
     como arrays, lo que produce un rendimiento en cuanto a la velocidad de procesado bastante elevado. Para la normalizacion se emple tambien una 
     mascara de nubes, que se obtiene empleando Fmask o la banda de calidad de Landsat 8 si fallara Fmask.
 
-    El script requiere una estructura de carpetas en un mismo nivel (/ori, /rad y /data). En /data deben de estar los archivos necesarios para
+    El script requiere una estructura de carpetas en un mismo nivel (/ori, /rad, /nor y /data). En /data deben de estar los archivos necesarios para
     llevar a cabo el proceso:
 
-        1) Shape con los limites de los Embalses a tratar
-        2) Shape de puntos con los lugares de los que hay datos de campo, para hacer un "extract_values_to_point"
-        3) Modelo Digital del Terreno lo bastante amplio como para englobar cualquier escena *
-        *) Al tener escenas en huso 29 y huso 30 se ha optado por tener 2 dtms (de la peninsula completa) uno en 29 y otro en 30, automaticamente se elige el adecuado
-
-    Ademas de estos requisitos, en la carpeta /rad debe de haber un archivos kl_l8.rad donde se guardaran temporalmente los valores
-    del objeto oscuro (proceso empleado para la Correccion Radiometrica). 
+        1) DTM en los 3 husos  que ocupa Cuba (16, 17 y 18)
+        2) Shapes con los extents de cada una de las escenas y cada zona de solape
+        3) Shapes con las areas pseudo invariantes para llevar a cabo la normalizacion
+        
 
     Al finalizar el proceso tendremos en ori, y rad las bandas (de la 1  la 9 sin la pancromatica) en formato img + doc + rel + hdr pasadas ya de niveles digitales
-    a reflectancia en superficie y toda la informacion del proceso almacenada en una base de datos SQLite'''
+    a reflectancia en superficie. En nor tendremos las imagenes normalizadas y recortadas al extent de cada escena'''
     
     
     def __init__(self, ruta, umbral=22, hist=1000, dtm = 'plano'):
@@ -55,7 +52,7 @@ class Landsat(object):
         self.raiz = os.path.split(self.ori)[0]
         self.rad = os.path.join(self.raiz, 'rad')
         self.data = os.path.join(self.raiz, 'data')
-        self.Erad = r'E:\cuba\rad'
+        self.Erad = r'E:\cuba\rad' #Un nuevo path /rad para liberar espacio en C:\
         self.umbral = umbral
         self.hist = hist
         self.dtm = None
@@ -87,7 +84,7 @@ class Landsat(object):
                         cloud_scene = float(i[-6:-1])
                         
                     elif 'UTM_ZONE' in i:
-                        self.zone = int(i.split('=')[1][1:-1]) #vamos a distinguir si son escenas del uso 30 o 29 para ver que dtm usaremos luego
+                        self.zone = int(i.split('=')[1][1:-1]) #vamos a distinguir si son escenas del uso 16, 17 o 18 para ver que dtm usaremos luego
                         
         arc.close()
         
@@ -119,7 +116,8 @@ class Landsat(object):
                 
                 print 'comenzando Fmask'
                 t = time.time()
-                    #El valor (el ultimo valor, que es el % de confianza sobre el pixel (nubes)) se pedira desde la interfaz que se haga. 
+                    #El valor (el ultimo valor, que es el % de confianza sobre el pixel (nubes)) se pedira desde la interfaz que se haga.
+                    #Ultima version de Fmask 3.3
                 a = os.system('"C:/Program Files/Fmask/application/Fmask" 10 10 0 {}'.format(self.umbral))
                 a
                 if a == 0:
@@ -195,11 +193,7 @@ class Landsat(object):
                 dst = src + '.img'
                 os.rename(src, dst)
                 
-    def fmask_doc(self):
-        
-        '''-----\n
-        Este metodo anade el archivo .doc necesario para que MIramon entienda el raster al tiempo que reconoce que
-        se tratar de una raster categorico con sus correspondientes valores (Sin definir, Agua, Sombra de nubes, Nieve, Nubes).'''
+    
         
     def get_hdr(self):
         
@@ -295,8 +289,7 @@ class Landsat(object):
         '''Este metodo obtiene los Kl para cada banda. Lo hace buscando los valores minimos dentro 
         de las zonas clasificadas como agua y sombra orografica, siempre y cuando la sombra orografica 
         no este cubierta por nubes ni sombra de nubes. La calidad de la mascara e muy importante, por eso
-        a las escenas que no se puedan realizar con Fmask habria que revisarles el valor de kl.
-        Tambien distingue Landsar 7 de Landsat 8, aplicandole tambien a las Landsat 7 la mascara de Gaps'''
+        a las escenas que no se puedan realizar con Fmask habria que revisarles el valor de kl.'''
     
         #Empezamos borrando los archivos de temp, la idea de esto es que al acabar una escena queden disponibles
         #por si se quiere comprobar algo. Ya aqui se borran antes de comenzar la siguiente
@@ -528,7 +521,7 @@ class Landsat(object):
             if i.endswith('.rel'):
                 relf = os.path.join(self.mimport, i)
         
-        bat = r'C:\Embalses\data\temp\canvi.bat'
+        bat = r'C:\Cuba\data\temp\canvi.bat'
         open(bat, 'a').close()
         claves = ['8-PAN', '10-LWIR1', '11-LWIR2', 'QA']
         rel = open(relf, 'r')
@@ -701,7 +694,7 @@ class Landsat(object):
             if i.endswith('B1-CA_00.img'):
                 banda1 = os.path.join(self.mimport, i)
             else: continue
-        #dtm_ = r'C:\Embalses\data\temp\dtm_escena.img'
+        #dtm_ = r'C:\Cuba\data\temp\dtm_escena.img'
         print 'el dtm usado es ', self.dtm
         lista = [corrad, num1, banda1, path_escena_rad, self.dtm, kl, string]
         print lista
@@ -862,14 +855,14 @@ class Landsat(object):
         l.append('C:\Miramon\canvirel 1 ' + rel + ' ATTRIBUTE_DATA NODATA 0\n')
         l.append('C:\Miramon\canvirel 1 ' + rel + ' ATTRIBUTE_DATA unitats Refls')  
             
-        bat = open(r'C:\Embalses\data\temp\rename_rad.bat', 'w')
+        bat = open(r'C:\Cuba\data\temp\rename_rad.bat', 'w')
         bat.seek(0)
         for i in l:
             #print i
             bat.write(i)
         bat.close()
 
-        os.system(r'C:\Embalses\data\temp\rename_rad.bat')
+        os.system(r'C:\Cuba\data\temp\rename_rad.bat')
 
     def clean_rad(self):
         
