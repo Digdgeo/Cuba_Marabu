@@ -52,6 +52,7 @@ class Landsat(object):
         self.raiz = os.path.split(self.ori)[0]
         self.rad = os.path.join(self.raiz, 'rad')
         self.data = os.path.join(self.raiz, 'data')
+        self.temp = os.path.join(self.data, 'temp')
         self.Erad = r'E:\cuba\rad' #Un nuevo path /rad para liberar espacio en C:\
         self.umbral = umbral
         self.hist = hist
@@ -334,6 +335,8 @@ class Landsat(object):
             dtm = os.path.join(self.data, 'cubadtm_aster.tif')
         elif self.zone == 18:
             dtm = os.path.join(self.data, 'cubadtm_aster_182.tif')
+        elif self.zone == 16:
+            dtm = os.path.join(self.data, 'cubadtm_aster_16.tif')
         else:
             print 'No se que zona es...'
         print dtm
@@ -521,7 +524,7 @@ class Landsat(object):
             if i.endswith('.rel'):
                 relf = os.path.join(self.mimport, i)
         
-        bat = r'C:\Cuba\data\temp\canvi.bat'
+        bat = os.path.join(self.data, 'canvi.bat')
         open(bat, 'a').close()
         claves = ['8-PAN', '10-LWIR1', '11-LWIR2', 'QA']
         rel = open(relf, 'r')
@@ -568,8 +571,8 @@ class Landsat(object):
         '''-----\n
         Este metodo genera un dtm con valor 0  con la extension de la escena que estemos tratando'''
         
-        shape = r'C:\Cuba\data\temp\poly_escena.shp'
-        nodtm = r'C:\Cuba\data\temp\Nodtm.img' 
+        shape = os.path.join(self.temp, 'poly_escena.shp')
+        nodtm = os.path.join(self.temp, 'Nodtm.img') 
 
         cmd = ["gdal_rasterize -tr 30 30 -ot Byte -of ENVI -burn 0 -l poly_escena", shape, nodtm]
 
@@ -591,7 +594,7 @@ class Landsat(object):
         shutil.copy(b1, dst)
         
         #Ahora vamos a modificar el doc para que tenga los valores adecuados
-        archivo = r'C:\Cuba\data\temp\Nodtm.doc'
+        archivo = os.path.join(self.temp, 'Nodtm.doc')
 
         doc = open(archivo, 'r')
         doc.seek(0)
@@ -640,11 +643,11 @@ class Landsat(object):
         for i in os.listdir(self.mimport):
             if i.endswith('B1-CA_00.doc'):
                 src = os.path.join(self.mimport, i)
-                dst = os.path.join(self.data, os.path.join('temp', 'dtm_escena.doc'))
+                dst = os.path.join(self.temp, 'dtm_escena.doc')
                 shutil.copy(src, dst)
 
         #Ahora editamos el doc para que tenga los valores correctos
-        archivo = r'C:\Cuba\data\temp\dtm_escena.doc'
+        archivo = os.path.join(self.temp, 'dtm_escena.doc')
 
         doc = open(archivo, 'r')
         doc.seek(0)
@@ -680,7 +683,7 @@ class Landsat(object):
         Este metodo crea el bat para realizar la correcion radiometrica'''
 
         #Incluimos reflectividades por arriba y por debajo de 100 y 0
-        self.dtm = os.path.join(self.data, os.path.join('temp', 'Nodtm.img'))
+        self.dtm = os.path.join(self.temp, 'Nodtm.img')
         path_escena_rad = os.path.join(self.rad, self.escena)
         corrad = 'C:\MiraMon\CORRAD'
         num1 = '1'
@@ -970,4 +973,4 @@ class Landsat(object):
         self.correct_sup_inf()
         self.modify_rel_R()
         self.clean_rad()
-        self.wrs_mask()
+        #self.wrs_mask()

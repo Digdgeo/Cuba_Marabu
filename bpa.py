@@ -2,8 +2,8 @@
 ######                                                                              ######
 ####                        Autor: Diego Garcia Diaz                                  ####
 ###                      email: digd.geografo@gmail.com                                ###
-##            GitHub: https://github.com/Digdgeo/****                                   ##
-#                        Huelva 25/05/2016-25/07/2016                                   #
+##                 GitHub: https://github.com/Digdgeo/Cuba_Marabu                       ##
+#                   Universidad de Huelva 25/05/2016-25/07/2016                          #
 
 # coding: utf-8
 
